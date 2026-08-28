@@ -4,34 +4,1441 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>躲避跑酷 - 网页游戏</title>
-  <link rel="stylesheet" href="/src/assets/styles/main.css">
-  <!-- Vue3 CDN -->
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #app {
+      max-width: 500px;
+      margin: 0 auto;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 加载页面 */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: white;
+      text-align: center;
+    }
+    .loading h1 { font-size: 48px; margin-bottom: 20px; }
+    .loading p { font-size: 18px; opacity: 0.8; }
+
+    /* 首页 */
+    .home {
+      height: 100vh;
+      padding: 20px;
+      overflow-y: auto;
+      color: white;
+    }
+    .home-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-top: 30px;
+    }
+    .home-header h1 {
+      font-size: 42px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .home-header p {
+      font-size: 16px;
+      opacity: 0.8;
+      margin-top: 8px;
+    }
+
+    /* 信息卡片 */
+    .info-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      color: #333;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #666; }
+    .info-value { font-weight: 700; }
+
+    /* 关卡选择 */
+    .levels {
+      margin-bottom: 24px;
+    }
+    .levels h2 {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .level-btn {
+      background: rgba(255,255,255,0.95);
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .level-btn:hover:not(.locked) {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .level-btn.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .level-btn.current {
+      border: 3px solid #4CAF50;
+    }
+    .level-btn.endless {
+      border: 3px solid #FF9800;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: white;
+    }
+    .level-btn.endless .level-num { color: #FFD700; }
+    .level-btn.endless .level-name { color: #FFB74D; }
+    .level-num {
+      font-size: 24px;
+      font-weight: 700;
+      display: block;
+      color: #333;
+    }
+    .level-name {
+      font-size: 12px;
+      color: #666;
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* 按钮 */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .btn-primary {
+      background: #4CAF50;
+      color: white;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.9);
+      color: #333;
+    }
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .btn-row .btn {
+      flex: 1;
+    }
+    .btn-small {
+      padding: 2px 10px;
+      font-size: 11px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      min-width: 30px;
+      line-height: 1.3;
+    }
+    .toggle-on { background: #4CAF50; }
+    .toggle-off { background: #bbb; }
+
+    /* 设置弹窗（独立样式，不受 pause-modal 的 text-align:center 影响）*/
+    .settings-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      width: 90%;
+      max-width: 320px;
+      text-align: center;
+    }
+    .settings-modal h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .settings-list {
+      text-align: left;
+    }
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-label {
+      font-size: 15px;
+      color: #333;
+      flex-shrink: 0;
+    }
+    .settings-value {
+      font-size: 14px;
+      color: #999;
+    }
+
+    /* 游戏页面 */
+    .game {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #1a1a2e;
+    }
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.3);
+      color: white;
+    }
+    .game-score {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .game-lives {
+      display: flex;
+      gap: 4px;
+    }
+    .game canvas {
+      flex: 1;
+      width: 100%;
+      display: block;
+    }
+
+    /* 结算页面 */
+    .result {
+      height: 100vh;
+      padding: 20px;
+      overflow-y: auto;
+      text-align: center;
+      color: white;
+    }
+    .result-header {
+      padding: 40px 0 30px;
+    }
+    .result-header h1 {
+      font-size: 36px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .result-header.win h1 { color: #FFD700; }
+    .result-header p {
+      opacity: 0.8;
+      margin-top: 8px;
+    }
+    .result-stats {
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      color: #333;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: #666; }
+    .stat-value { font-weight: 700; font-size: 18px; }
+    .stat-value.gold { color: #FFD700; }
+
+    .result-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 版本信息 */
+    .version {
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      margin-top: 30px;
+      padding-bottom: 20px;
+    }
+
+    /* 彩蛋提示 */
+    .god-hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #333;
+      padding: 20px 40px;
+      border-radius: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      z-index: 10000;
+      animation: pulse 1s infinite;
+      box-shadow: 0 0 30px rgba(255,215,0,0.5);
+      cursor: pointer;
+      user-select: none;
+    }
+    .god-hint .hint-close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 16px;
+      opacity: 0.6;
+    }
+    .god-hint .hint-close:hover {
+      opacity: 1;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    /* 暂停 */
+    .pause-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .pause-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      width: 90%;
+      max-width: 320px;
+    }
+    .pause-modal h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .pause-modal p {
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .pause-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* 移动端控制 */
+    .controls {
+      display: none;
+      padding: 16px;
+      justify-content: center;
+      gap: 30px;
+      background: rgba(0,0,0,0.3);
+    }
+    .ctrl-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .controls { display: flex; }
+    }
+  </style>
 </head>
 <body>
   <div id="app">
-    <!-- Vue应用将挂载到这里 -->
-    <div class="loading-screen">
-      <div class="loading-content">
+    <!-- 加载中 -->
+    <div v-if="loading" class="loading">
+      <div>
         <h1>🎮 躲避跑酷</h1>
         <p>加载中...</p>
       </div>
     </div>
+
+    <!-- 首页 -->
+    <div v-else-if="page === 'home'" class="home">
+      <div class="home-header">
+        <h1>🎮 躲避跑酷</h1>
+        <p>经典躲避 · 休闲闯关</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-row">
+          <span class="info-label">💰 金币</span>
+          <span class="info-value">{{ player.coins }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">💎 钻石</span>
+          <span class="info-value">{{ player.diamonds }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">🏆 最高分</span>
+          <span class="info-value">{{ player.highScore }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">🎯 已通关</span>
+          <span class="info-value">第 {{ player.maxLevel }} 关</span>
+        </div>
+      </div>
+
+      <div class="levels">
+        <h2>🗺️ 选择关卡</h2>
+        <div class="level-grid">
+          <button
+            v-for="lv in levels"
+            :key="lv.id"
+            class="level-btn"
+            :class="{
+              locked: !lv.endless && lv.id > player.maxLevel,
+              current: lv.id === player.maxLevel,
+              endless: lv.endless
+            }"
+            @click="selectLevel(lv.id)"
+            :disabled="!lv.endless && lv.id > player.maxLevel"
+          >
+            <span class="level-num">{{ (!lv.endless && lv.id > player.maxLevel) ? '🔒' : (lv.endless ? '∞' : lv.id) }}</span>
+            <span class="level-name">{{ lv.name }}</span>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" @click="startGame">🎮 开始游戏</button>
+      <div class="btn-row">
+        <button class="btn btn-secondary" @click="showSettings = true">⚙️ 设置</button>
+      </div>
+
+      <div class="version">v1.0.0 | 游戏中试试输入文字或疯狂按键？🤔</div>
+
+      <!-- 设置弹窗 -->
+      <div v-if="showSettings" class="pause-overlay" @click.self="showSettings = false">
+        <div class="settings-modal">
+          <h2>⚙️ 设置</h2>
+          <div class="settings-list">
+            <div class="settings-row">
+              <span class="settings-label">音乐</span>
+              <button class="btn btn-small" :class="bgmOn ? 'toggle-on' : 'toggle-off'" @click="bgmOn = !bgmOn">{{ bgmOn ? '开' : '关' }}</button>
+            </div>
+            <div class="settings-row">
+              <span class="settings-label">音效</span>
+              <button class="btn btn-small" :class="sfxOn ? 'toggle-on' : 'toggle-off'" @click="sfxOn = !sfxOn">{{ sfxOn ? '开' : '关' }}</button>
+            </div>
+            <div class="settings-row">
+              <span class="settings-label">当前版本</span>
+              <span class="settings-value">v1.0.0</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px;" @click="showSettings = false">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏页面 -->
+    <div v-else-if="page === 'game'" class="game">
+      <div class="game-header">
+        <button style="background:none;border:none;font-size:24px;cursor:pointer;color:white" @click="pauseGame">⏸️</button>
+        <span class="game-score">{{ currentLevel.endless ? '无尽模式' : '第 ' + currentLevel.id + ' 关' }}</span>
+        <div class="game-lives">
+          <span v-for="i in gameLives" :key="i">❤️</span>
+        </div>
+      </div>
+      <canvas ref="gameCanvas" width="400" height="550"></canvas>
+      <div class="controls">
+        <button class="ctrl-btn" @touchstart="moveLeft" @touchend="stopMove">◀</button>
+        <button class="ctrl-btn" @touchstart="moveRight" @touchend="stopMove">▶</button>
+      </div>
+
+      <!-- 暂停弹窗 -->
+      <div v-if="paused" class="pause-overlay">
+        <div class="pause-modal">
+          <h2>⏸️ 游戏暂停</h2>
+          <p>当前分数: {{ gameScore }}</p>
+          <p>{{ currentLevel.endless ? '无尽模式 - 挑战极限' : '目标分数: ' + currentLevel.target }}</p>
+          <div class="pause-buttons">
+            <button class="btn btn-primary" @click="resumeGame">▶️ 继续</button>
+            <button class="btn btn-secondary" @click="restartGame">🔄 重新开始</button>
+            <button class="btn btn-secondary" @click="goHome">🏠 返回首页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 结算页面 -->
+    <div v-else-if="page === 'result'" class="result">
+      <div class="result-header" :class="{ win: result.isWin }">
+        <h1>{{ result.isWin ? '🎉 恭喜通关！' : '💀 游戏结束' }}</h1>
+        <p>{{ result.isWin ? '你成功完成了挑战！' : '再接再厉，下次一定能行！' }}</p>
+      </div>
+
+      <div class="result-stats">
+        <div class="stat-row">
+          <span class="stat-label">🏆 最终得分</span>
+          <span class="stat-value">{{ result.score }}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">🎯 关卡</span>
+          <span class="stat-value">第 {{ result.level }} 关</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">💰 获得金币</span>
+          <span class="stat-value">+{{ result.coins }}</span>
+        </div>
+        <div v-if="result.isNewRecord" class="stat-row">
+          <span class="stat-label">🌟 新纪录！</span>
+          <span class="stat-value gold">超越历史最高</span>
+        </div>
+      </div>
+
+      <div class="result-buttons">
+        <button class="btn btn-primary" @click="restartGame">🔄 再来一局</button>
+        <button v-if="result.isWin" class="btn btn-primary" style="background:#2196F3" @click="nextLevel">➡️ 下一关</button>
+        <button class="btn btn-secondary" @click="page = 'home'">🏠 返回首页</button>
+      </div>
+    </div>
+
+    <!-- 彩蛋提示 -->
+    <div v-if="easterEggMsg" class="god-hint" @click="easterEggMsg = ''">
+      {{ easterEggMsg }}
+      <span class="hint-close">✕</span>
+    </div>
   </div>
 
-  <!-- 游戏脚本 -->
-  <script src="/src/utils/gameEngine.js"></script>
-  <script src="/src/utils/saveManager.js"></script>
-  <script src="/src/utils/audioManager.js"></script>
-  <script src="/src/store/index.js"></script>
-  <script src="/src/components/GameCanvas.js"></script>
-  <script src="/src/components/GameUI.js"></script>
-  <script src="/src/components/Modal.js"></script>
-  <script src="/src/components/TaskCard.js"></script>
-  <script src="/src/views/HomeView.js"></script>
-  <script src="/src/views/GameView.js"></script>
-  <script src="/src/views/ResultView.js"></script>
-  <script src="/src/App.js"></script>
-  <script src="/src/main.js"></script>
+  <!-- Vue 3 -->
+  <script src="/src/assets/vue.global.js"></script>
+
+  <script>
+    // 游戏配置
+    const LEVELS = [
+      { id: 1, name: '新手训练', target: 100, obsSpeed: 2, obsFreq: 0.02, coinFreq: 0.03, bg: '#87CEEB' },
+      { id: 2, name: '速度提升', target: 250, obsSpeed: 3, obsFreq: 0.025, coinFreq: 0.025, bg: '#98D8E8' },
+      { id: 3, name: '障碍密集', target: 500, obsSpeed: 3.5, obsFreq: 0.035, coinFreq: 0.02, bg: '#7EC8E3' },
+      { id: 4, name: '精英挑战', target: 800, obsSpeed: 4, obsFreq: 0.04, coinFreq: 0.02, bg: '#5DADE2' },
+      { id: 5, name: '极限生存', target: 1200, obsSpeed: 5, obsFreq: 0.05, coinFreq: 0.015, bg: '#3498DB' },
+      { id: 6, name: '无尽模式', target: Infinity, obsSpeed: 3, obsFreq: 0.03, coinFreq: 0.02, bg: '#1a1a2e', endless: true }
+    ];
+
+    // 存档管理
+    const Save = {
+      KEY: 'dodge_runner_save',
+      data: null,
+      load() {
+        try {
+          const saved = localStorage.getItem(this.KEY);
+          this.data = saved ? JSON.parse(saved) : this.getDefault();
+        } catch(e) {
+          this.data = this.getDefault();
+        }
+        return this.data;
+      },
+      getDefault() {
+        return {
+          coins: 0, diamonds: 0, highScore: 0, maxLevel: 1,
+          gamesPlayed: 0, godMode: false, createdAt: Date.now()
+        };
+      },
+      save() {
+        try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch(e) {}
+      },
+      update(updates) {
+        Object.assign(this.data, updates);
+        this.save();
+      }
+    };
+
+    // ========== 音频管理器 ==========
+    const AudioMgr = {
+      ctx: null,
+      bgmGain: null,
+      sfxGain: null,
+      bgmPlaying: false,
+      bgmOscillators: [],
+
+      init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.bgmGain = this.ctx.createGain();
+        this.bgmGain.gain.value = 0.15;
+        this.bgmGain.connect(this.ctx.destination);
+        this.sfxGain = this.ctx.createGain();
+        this.sfxGain.gain.value = 0.4;
+        this.sfxGain.connect(this.ctx.destination);
+      },
+
+      // 播放单个音符
+      playNote(freq, duration, type = 'sine', gainNode = null) {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        osc.connect(g);
+        g.connect(gainNode || this.sfxGain);
+        g.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      },
+
+      // 收集金币音效
+      coin() {
+        this.playNote(880, 0.08);
+        setTimeout(() => this.playNote(1100, 0.1), 50);
+      },
+
+      // 受伤音效
+      hit() {
+        this.playNote(200, 0.2, 'sawtooth');
+      },
+
+      // 通关音效
+      win() {
+        this.playNote(523, 0.12);
+        setTimeout(() => this.playNote(659, 0.12), 120);
+        setTimeout(() => this.playNote(784, 0.12), 240);
+        setTimeout(() => this.playNote(1047, 0.3), 360);
+      },
+
+      // 游戏结束音效
+      gameOver() {
+        this.playNote(440, 0.2, 'sawtooth');
+        setTimeout(() => this.playNote(349, 0.2, 'sawtooth'), 120);
+        setTimeout(() => this.playNote(294, 0.3, 'sawtooth'), 240);
+        setTimeout(() => this.playNote(220, 0.5, 'sawtooth'), 380);
+        setTimeout(() => {
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(80, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.3);
+          osc.connect(g);
+          g.connect(this.sfxGain);
+          g.gain.setValueAtTime(0.5, this.ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.4);
+        }, 550);
+      },
+
+      // 彩蛋激活音效
+      easterEgg() {
+        this.playNote(600, 0.1);
+        setTimeout(() => this.playNote(800, 0.1), 80);
+        setTimeout(() => this.playNote(1000, 0.15), 160);
+        setTimeout(() => this.playNote(1200, 0.2), 240);
+      },
+
+      // 背景音乐（简单循环旋律）
+      startBgm() {
+        if (!this.ctx || this.bgmPlaying) return;
+        this.bgmPlaying = true;
+        this._loopBgm();
+      },
+
+      _loopBgm() {
+        if (!this.bgmPlaying) return;
+        const melody = [262, 294, 330, 349, 392, 349, 330, 294]; // C D E F G F E D
+        const beat = 0.25;
+        melody.forEach((freq, i) => {
+          setTimeout(() => {
+            if (this.bgmPlaying) {
+              this.playNote(freq, beat * 0.8, 'triangle', this.bgmGain);
+            }
+          }, i * beat * 1000);
+        });
+        // 循环
+        this._bgmTimer = setTimeout(() => this._loopBgm(), melody.length * beat * 1000);
+      },
+
+      stopBgm() {
+        this.bgmPlaying = false;
+        clearTimeout(this._bgmTimer);
+      },
+
+      setBgmVolume(on) {
+        if (this.bgmGain) this.bgmGain.gain.value = on ? 0.15 : 0;
+        if (on) this.startBgm();
+        else this.stopBgm();
+      },
+
+      setSfxVolume(on) {
+        if (this.sfxGain) this.sfxGain.gain.value = on ? 0.4 : 0;
+      }
+    };
+
+    // 创建 Vue 应用
+    const { createApp, ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+
+    const app = createApp({
+      setup() {
+        const loading = ref(true);
+        const page = ref('home');
+        const player = ref(Save.load());
+        // 每次进入游戏默认关闭无敌模式
+        if (player.value.godMode) {
+          Save.update({ godMode: false });
+          player.value.godMode = false;
+        }
+        const levels = LEVELS;
+        const selectedLevel = ref(1);
+        const showSettings = ref(false);
+        const bgmOn = ref(true);
+        const sfxOn = ref(true);
+
+        // 切换无敌模式
+        const toggleGodMode = () => {
+          const newVal = !player.value.godMode;
+          Save.update({ godMode: newVal });
+          player.value.godMode = newVal;
+        };
+
+        // 游戏状态
+        const gameCanvas = ref(null);
+        const gameScore = ref(0);
+        const gameLives = ref(3);
+        const paused = ref(false);
+        const result = ref({});
+        // 彩蛋提示已移至彩蛋系统中
+
+        // 游戏引擎变量
+        let engine = null;
+        let animId = null;
+        let gameState = {};
+
+        // 当前关卡配置
+        const currentLevel = computed(() => LEVELS[selectedLevel.value - 1] || LEVELS[0]);
+
+        // 选择关卡
+        const selectLevel = (id) => {
+          const lv = LEVELS.find(l => l.id === id);
+          // 无尽模式始终可选，普通关卡需要已解锁
+          if ((lv && lv.endless) || id <= player.value.maxLevel) {
+            selectedLevel.value = id;
+            startGame();
+          }
+        };
+
+        // 开始游戏
+        const startGame = () => {
+          page.value = 'game';
+          gameScore.value = 0;
+          gameLives.value = 3;
+          paused.value = false;
+
+          // 初始化音频并启动背景音乐
+          AudioMgr.init();
+          if (bgmOn.value) AudioMgr.startBgm();
+
+          nextTick(() => {
+            initGame();
+          });
+        };
+
+        // 初始化游戏
+        const initGame = () => {
+          const canvas = gameCanvas.value;
+          if (!canvas) return;
+
+          const ctx = canvas.getContext('2d');
+          const W = canvas.width;
+          const H = canvas.height;
+          const level = currentLevel.value;
+
+          // 游戏对象
+          const player = {
+            x: W / 2 - 20,
+            y: H - 120,
+            w: 40,
+            h: 40,
+            speed: 5,
+            invincible: false,
+            invTimer: 0
+          };
+
+          let obstacles = [];
+          let coins = [];
+          let particles = [];
+          let score = 0;
+          let lives = 3;
+          let running = true;
+          let lastTime = performance.now();
+
+          // 输入
+          const keys = {};
+          const keyDown = (e) => { keys[e.key] = true; };
+          const keyUp = (e) => { keys[e.key] = false; };
+          window.addEventListener('keydown', keyDown);
+          window.addEventListener('keyup', keyUp);
+
+          // 触摸
+          let touchX = null;
+          const touchStart = (e) => { touchX = e.touches[0].clientX; };
+          const touchMove = (e) => {
+            if (touchX !== null) {
+              const diff = e.touches[0].clientX - touchX;
+              player.x += diff * 0.8;
+              touchX = e.touches[0].clientX;
+            }
+          };
+          const touchEnd = () => { touchX = null; };
+          canvas.addEventListener('touchstart', touchStart);
+          canvas.addEventListener('touchmove', touchMove);
+          canvas.addEventListener('touchend', touchEnd);
+
+          // 清理函数
+          const cleanup = () => {
+            window.removeEventListener('keydown', keyDown);
+            window.removeEventListener('keyup', keyUp);
+            canvas.removeEventListener('touchstart', touchStart);
+            canvas.removeEventListener('touchmove', touchMove);
+            canvas.removeEventListener('touchend', touchEnd);
+            running = false;
+            if (animId) {
+              cancelAnimationFrame(animId);
+              animId = null;
+            }
+          };
+
+          // 游戏循环
+          const loop = (time) => {
+            if (!running) return;
+
+            const dt = Math.min((time - lastTime) / 1000, 0.05);
+            lastTime = time;
+
+            // 更新玩家位置
+            if (keys['ArrowLeft'] || keys['a']) player.x -= player.speed;
+            if (keys['ArrowRight'] || keys['d']) player.x += player.speed;
+            player.x = Math.max(0, Math.min(W - player.w, player.x));
+
+            // 无尽模式难度递增（每100分提升一级）
+            const diffMul = level.endless ? 1 + Math.floor(score / 100) * 0.15 : 1;
+
+            // 生成障碍物
+            const obsFreq = Math.min(level.obsFreq * diffMul, 0.12);
+            const obsBaseSpeed = level.obsSpeed * diffMul;
+            if (Math.random() < obsFreq) {
+              const w = 30 + Math.random() * 40;
+              const spd = effects.slowMode ? (obsBaseSpeed + Math.random()) * 0.3 : obsBaseSpeed + Math.random();
+              obstacles.push({ x: Math.random() * (W - w), y: -w, w, h: w, speed: spd });
+            }
+
+            // 生成金币
+            if (Math.random() < level.coinFreq) {
+              coins.push({ x: Math.random() * (W - 20), y: -20, w: 20, h: 20, speed: 2 + Math.random() });
+            }
+
+            // 更新对象（减速模式影响下落速度）
+            const speedMul = effects.slowMode ? 0.3 : 1;
+            obstacles.forEach(o => o.y += o.speed * speedMul);
+            obstacles = obstacles.filter(o => o.y < H);
+
+            // 磁铁模式：金币自动飞向玩家
+            coins.forEach(c => {
+              if (effects.magnetMode) {
+                const dx = (player.x + player.w/2) - (c.x + c.w/2);
+                const dy = (player.y + player.h/2) - (c.y + c.h/2);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 200) {
+                  c.x += dx * 0.08;
+                  c.y += dy * 0.08;
+                }
+              }
+              c.y += c.speed * speedMul;
+            });
+            coins = coins.filter(c => c.y < H && !c.collected);
+
+            // 碰撞检测
+            const colliding = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+            // 障碍物碰撞
+            obstacles.forEach(o => {
+              if (colliding(player, o)) {
+                if (Save.data.godMode) {
+                  // 无敌模式：销毁障碍物
+                  createParticles(o.x + o.w/2, o.y + o.h/2, '#00FF00', 8);
+                  o.y = H + 100;
+                  score += 5;
+                } else if (!player.invincible) {
+                  lives--;
+                  player.invincible = true;
+                  player.invTimer = 2;
+                  createParticles(player.x + player.w/2, player.y + player.h/2, '#FF4444', 10);
+                  gameLives.value = lives;
+                  AudioMgr.hit();
+                  if (lives <= 0) {
+                    running = false;
+                    cleanup();
+                    AudioMgr.gameOver();
+                    endGame(score, false);
+                  }
+                }
+              }
+            });
+
+            // 金币收集
+            coins.forEach(c => {
+              if (!c.collected && colliding(player, c)) {
+                c.collected = true;
+                score += 10;
+                createParticles(c.x + c.w/2, c.y + c.h/2, '#FFD700', 5);
+                gameScore.value = score;
+                AudioMgr.coin();
+              }
+            });
+
+            // 更新无敌时间
+            if (player.invincible) {
+              player.invTimer -= dt;
+              if (player.invTimer <= 0) player.invincible = false;
+            }
+
+            // 更新粒子
+            particles.forEach(p => {
+              p.x += p.vx;
+              p.y += p.vy;
+              p.life -= 0.02;
+            });
+            particles = particles.filter(p => p.life > 0);
+
+            // 检查通关（无尽模式不检查目标分数）
+            if (!level.endless && score >= level.target) {
+              running = false;
+              cleanup();
+              AudioMgr.win();
+              endGame(score, true);
+              return;
+            }
+
+            // 渲染
+            // 彩虹模式：背景颜色渐变
+            if (effects.rainbowMode) {
+              effects.rainbowHue = (effects.rainbowHue + 2) % 360;
+              ctx.fillStyle = `hsl(${effects.rainbowHue}, 70%, 80%)`;
+            } else {
+              ctx.fillStyle = level.bg;
+            }
+            ctx.fillRect(0, 0, W, H);
+
+            // 网格背景
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            for (let x = 0; x < W; x += 50) {
+              ctx.beginPath();
+              ctx.moveTo(x, 0);
+              ctx.lineTo(x, H);
+              ctx.stroke();
+            }
+            for (let y = 0; y < H; y += 50) {
+              ctx.beginPath();
+              ctx.moveTo(0, y);
+              ctx.lineTo(W, y);
+              ctx.stroke();
+            }
+
+            // 绘制金币
+            ctx.fillStyle = '#FFD700';
+            coins.forEach(c => {
+              if (!c.collected) {
+                ctx.beginPath();
+                ctx.arc(c.x + c.w/2, c.y + c.h/2, c.w/2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#DAA520';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+              }
+            });
+
+            // 绘制障碍物
+            obstacles.forEach(o => {
+              ctx.fillStyle = '#E74C3C';
+              ctx.fillRect(o.x, o.y, o.w, o.h);
+              ctx.strokeStyle = '#C0392B';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(o.x, o.y, o.w, o.h);
+            });
+
+            // 绘制玩家
+            const isGod = Save.data.godMode;
+            if (isGod) {
+              ctx.fillStyle = `hsl(${Date.now() % 360}, 100%, 70%)`;
+              ctx.shadowBlur = 15;
+              ctx.shadowColor = '#FFD700';
+            } else if (effects.rainbowMode) {
+              ctx.fillStyle = `hsl(${effects.rainbowHue + 180}, 100%, 60%)`;
+            } else if (effects.flashMode) {
+              ctx.fillStyle = '#FFD700';
+              ctx.shadowBlur = 20;
+              ctx.shadowColor = '#FFD700';
+            } else if (effects.miniMode) {
+              ctx.fillStyle = '#00BCD4';
+            } else if (effects.giantMode) {
+              ctx.fillStyle = '#FF5722';
+              ctx.shadowBlur = 10;
+              ctx.shadowColor = '#FF5722';
+            } else if (player.invincible) {
+              ctx.globalAlpha = Math.sin(Date.now() / 50) > 0 ? 1 : 0.3;
+              ctx.fillStyle = '#FFF';
+            } else {
+              ctx.fillStyle = '#4CAF50';
+            }
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+            ctx.strokeStyle = isGod ? '#FFD700' : '#388E3C';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(player.x, player.y, player.w, player.h);
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+
+            // 玩家表情
+            ctx.fillStyle = '#FFF';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(isGod ? '😎' : '😊', player.x + player.w/2, player.y + player.h/2 + 5);
+
+            // 绘制粒子
+            particles.forEach(p => {
+              ctx.globalAlpha = p.life;
+              ctx.fillStyle = p.color;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+              ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            // UI
+            ctx.fillStyle = '#FFF';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`分数: ${score}`, 10, 25);
+            ctx.textAlign = 'right';
+            ctx.fillText(level.endless ? '挑战极限' : `目标: ${level.target}`, W - 10, 25);
+
+            if (isGod) {
+              ctx.fillStyle = '#FFD700';
+              ctx.font = 'bold 14px Arial';
+              ctx.textAlign = 'left';
+              ctx.fillText('✨ 无敌模式', 10, 50);
+            }
+
+            // 显示激活的效果
+            const activeEffects = [];
+            if (effects.slowMode) activeEffects.push('🐌减速');
+            if (effects.rainbowMode) activeEffects.push('🌈彩虹');
+            if (effects.miniMode) activeEffects.push('🔬缩小');
+            if (effects.giantMode) activeEffects.push('🦾巨人');
+            if (effects.magnetMode) activeEffects.push('🧲磁铁');
+            if (effects.flashMode) activeEffects.push('⚡闪电');
+
+            if (activeEffects.length > 0) {
+              ctx.fillStyle = '#FF9800';
+              ctx.font = 'bold 13px Arial';
+              ctx.textAlign = 'right';
+              ctx.fillText(activeEffects.join(' '), W - 10, 50);
+            }
+
+            animId = requestAnimationFrame(loop);
+          };
+
+          // 创建粒子
+          const createParticles = (x, y, color, count) => {
+            for (let i = 0; i < count; i++) {
+              particles.push({
+                x, y,
+                vx: (Math.random() - 0.5) * 6,
+                vy: (Math.random() - 0.5) * 6,
+                life: 1,
+                color
+              });
+            }
+          };
+
+          // 结束游戏
+          const endGame = (score, isWin) => {
+            AudioMgr.stopBgm();
+            const coins = Math.floor(score / 10) + (isWin ? 50 : 10);
+            const isNewRecord = score > Save.data.highScore;
+
+            Save.update({
+              gamesPlayed: Save.data.gamesPlayed + 1,
+              coins: Save.data.coins + coins,
+              highScore: Math.max(Save.data.highScore, score),
+              maxLevel: isWin ? Math.max(Save.data.maxLevel, selectedLevel.value + 1) : Save.data.maxLevel,
+              diamonds: Save.data.diamonds + (isWin ? selectedLevel.value * 5 : 0)
+            });
+
+            player.value = { ...Save.data };
+
+            result.value = {
+              score,
+              level: selectedLevel.value,
+              coins,
+              isWin,
+              isNewRecord
+            };
+            page.value = 'result';
+          };
+
+          // 保存清理函数
+          // 彩蛋效果状态
+          let effects = {
+            slowMode: false,
+            rainbowMode: false,
+            miniMode: false,
+            giantMode: false,
+            magnetMode: false,
+            flashMode: false,
+            rainbowHue: 0
+          };
+
+          engine = {
+            cleanup,
+            pause: () => {
+              running = false;
+              Object.keys(keys).forEach(k => keys[k] = false);
+              if (animId) {
+                cancelAnimationFrame(animId);
+                animId = null;
+              }
+            },
+            resume: () => {
+              running = true;
+              lastTime = performance.now();
+              Object.keys(keys).forEach(k => keys[k] = false);
+              animId = requestAnimationFrame(loop);
+            },
+            // 蜗牛减速模式
+            slowMode: (duration) => {
+              effects.slowMode = true;
+              setTimeout(() => { effects.slowMode = false; }, duration);
+            },
+            // 彩虹模式
+            rainbowMode: (duration) => {
+              effects.rainbowMode = true;
+              setTimeout(() => { effects.rainbowMode = false; }, duration);
+            },
+            // 缩小模式
+            miniMode: (duration) => {
+              effects.miniMode = true;
+              player.w = 24;
+              player.h = 24;
+              setTimeout(() => {
+                effects.miniMode = false;
+                player.w = 40;
+                player.h = 40;
+              }, duration);
+            },
+            // 巨人模式
+            giantMode: (duration) => {
+              effects.giantMode = true;
+              player.w = 60;
+              player.h = 60;
+              setTimeout(() => {
+                effects.giantMode = false;
+                player.w = 40;
+                player.h = 40;
+              }, duration);
+            },
+            // 磁铁模式
+            magnetMode: (duration) => {
+              effects.magnetMode = true;
+              setTimeout(() => { effects.magnetMode = false; }, duration);
+            },
+            // 闪电冲刺
+            flashMode: (duration) => {
+              effects.flashMode = true;
+              player.speed = 12;
+              setTimeout(() => {
+                effects.flashMode = false;
+                player.speed = 5;
+              }, duration);
+            },
+            // 全屏炸弹
+            bigBomb: () => {
+              // 消除所有障碍物并加分
+              obstacles.forEach(o => {
+                createParticles(o.x + o.w/2, o.y + o.h/2, '#FF6600', 6);
+                score += 3;
+              });
+              obstacles = [];
+              gameScore.value = score;
+            }
+          };
+
+          // 开始游戏循环
+          animId = requestAnimationFrame(loop);
+        };
+
+        // 暂停游戏
+        const pauseGame = () => {
+          if (engine) {
+            engine.pause();
+            paused.value = true;
+          }
+        };
+
+        // 继续游戏
+        const resumeGame = () => {
+          paused.value = false;
+          if (engine) {
+            engine.resume();
+          }
+        };
+
+        // 重新开始
+        const restartGame = () => {
+          if (engine) engine.cleanup();
+          paused.value = false;
+          startGame();
+        };
+
+        // 下一关
+        const nextLevel = () => {
+          selectedLevel.value = Math.min(selectedLevel.value + 1, 5);
+          restartGame();
+        };
+
+        // 返回首页
+        const goHome = () => {
+          if (engine) engine.cleanup();
+          AudioMgr.stopBgm();
+          paused.value = false;
+          page.value = 'home';
+        };
+
+        // 移动端控制
+        const moveLeft = () => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' })); };
+        const moveRight = () => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' })); };
+        const stopMove = () => {
+          window.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowLeft' }));
+          window.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowRight' }));
+        };
+
+        // ========== 彩蛋系统 ==========
+        const easterEggMsg = ref('');
+
+        // 显示彩蛋提示
+        const showEasterEgg = (msg) => {
+          easterEggMsg.value = msg;
+          setTimeout(() => { easterEggMsg.value = ''; }, 3000);
+        };
+
+        // 连按空格计数
+        let spacePressCount = 0;
+        let spaceTimer = null;
+
+        // 输入缓冲（用于文字彩蛋）
+        let inputBuffer = '';
+        let inputTimer = null;
+
+        // 彩蛋触发函数
+        const activateGodMode = () => {
+          AudioMgr.easterEgg();
+          Save.update({ godMode: true });
+          showEasterEgg('✨ 已激活无敌模式 ✨ 碰到障碍物会爆炸加分！');
+          console.log('🎮 无敌模式已激活！');
+        };
+
+        const activateSlowMode = () => {
+          AudioMgr.easterEgg();
+          showEasterEgg('🐌 减速模式！时间变慢了~');
+          // 临时减速效果：30秒内减慢障碍物速度
+          if (engine && engine.slowMode) engine.slowMode(30000);
+          console.log('🐌 减速模式激活');
+        };
+
+        const activateRainbow = () => {
+          AudioMgr.easterEgg();
+          showEasterEgg('🌈 彩虹模式！世界变得五彩缤纷~');
+          if (engine && engine.rainbowMode) engine.rainbowMode(15000);
+          console.log('🌈 彩虹模式激活');
+        };
+
+        const activateBigBomb = () => {
+          AudioMgr.easterEgg();
+          showEasterEgg('💣 全屏炸弹！清除了所有障碍物~');
+          if (engine && engine.bigBomb) engine.bigBomb();
+          console.log('💣 全屏炸弹引爆');
+        };
+
+        const activateMini = () => {
+          AudioMgr.easterEgg();
+          showEasterEgg('🔬 缩小模式！角色变小了，更灵活~');
+          if (engine && engine.miniMode) engine.miniMode(20000);
+          console.log('🔬 缩小模式激活');
+        };
+
+        const activateGiant = () => {
+          AudioMgr.easterEgg();
+          showEasterEgg('🦾 巨人模式！角色变大了，更容易撞碎障碍物~');
+          if (engine && engine.giantMode) engine.giantMode(20000);
+          console.log('🦾 巨人模式激活');
+        };
+
+        const activateMagnet = () => {
+          AudioMgr.easterEgg();
+          showEasterEgg('🧲 磁铁模式！金币自动飞过来~');
+          if (engine && engine.magnetMode) engine.magnetMode(20000);
+          console.log('🧲 磁铁模式激活');
+        };
+
+        const activateFlash = () => {
+          AudioMgr.easterEgg();
+          showEasterEgg('⚡ 闪电冲刺！自动前进，躲避一切~');
+          if (engine && engine.flashMode) engine.flashMode(10000);
+          console.log('⚡ 闪电冲刺激活');
+        };
+
+        // 主键盘事件处理
+        const handleKeydown = (e) => {
+          // 1. 连按空格触发无敌模式
+          if (e.code === 'Space') {
+            e.preventDefault();
+            spacePressCount++;
+            clearTimeout(spaceTimer);
+            spaceTimer = setTimeout(() => { spacePressCount = 0; }, 2000);
+
+            if (spacePressCount >= 5) {
+              activateGodMode();
+              spacePressCount = 0;
+            }
+            return;
+          }
+
+          // 2. 连按3次回车触发全屏炸弹
+          if (e.code === 'Enter') {
+            if (!window._enterCount) window._enterCount = 0;
+            window._enterCount++;
+            clearTimeout(window._enterTimer);
+            window._enterTimer = setTimeout(() => { window._enterCount = 0; }, 1500);
+
+            if (window._enterCount >= 3) {
+              activateBigBomb();
+              window._enterCount = 0;
+            }
+            return;
+          }
+
+          // 3. 文字输入彩蛋（检测中文输入）
+          if (e.key && e.key.length === 1) {
+            inputBuffer += e.key;
+            clearTimeout(inputTimer);
+            inputTimer = setTimeout(() => { inputBuffer = ''; }, 3000);
+
+            // 检查缓冲区中的彩蛋关键词
+            if (inputBuffer.includes('慢')) {
+              activateSlowMode();
+              inputBuffer = '';
+            } else if (inputBuffer.includes('彩虹') || inputBuffer.includes('color')) {
+              activateRainbow();
+              inputBuffer = '';
+            } else if (inputBuffer.includes('小')) {
+              activateMini();
+              inputBuffer = '';
+            } else if (inputBuffer.includes('大')) {
+              activateGiant();
+              inputBuffer = '';
+            } else if (inputBuffer.includes('磁铁') || inputBuffer.includes('吸')) {
+              activateMagnet();
+              inputBuffer = '';
+            } else if (inputBuffer.includes('闪') || inputBuffer.includes('快')) {
+              activateFlash();
+              inputBuffer = '';
+            }
+
+            // 保持缓冲区不要太长
+            if (inputBuffer.length > 20) {
+              inputBuffer = inputBuffer.slice(-10);
+            }
+          }
+        };
+
+        // 监听音效开关变化
+        watch(bgmOn, (val) => {
+          AudioMgr.init();
+          AudioMgr.setBgmVolume(val);
+        });
+        watch(sfxOn, (val) => {
+          AudioMgr.init();
+          AudioMgr.setSfxVolume(val);
+        });
+
+        // 尝试立即播放音乐，若被浏览器拦截则等用户交互后恢复
+        const tryStartAudio = () => {
+          AudioMgr.init();
+          if (bgmOn.value) {
+            AudioMgr.startBgm();
+          }
+          // 如果 AudioContext 被暂停（自动播放策略），监听用户交互恢复
+          if (AudioMgr.ctx && AudioMgr.ctx.state === 'suspended') {
+            const resumeAudio = () => {
+              AudioMgr.ctx.resume().then(() => {
+                if (bgmOn.value) AudioMgr.startBgm();
+              });
+              document.removeEventListener('click', resumeAudio);
+              document.removeEventListener('touchstart', resumeAudio);
+              document.removeEventListener('keydown', resumeAudio);
+            };
+            document.addEventListener('click', resumeAudio);
+            document.addEventListener('touchstart', resumeAudio);
+            document.addEventListener('keydown', resumeAudio);
+          }
+        };
+
+        onMounted(() => {
+          setTimeout(() => { loading.value = false; }, 500);
+          document.addEventListener('keydown', handleKeydown);
+          // 立即尝试播放音乐
+          tryStartAudio();
+        });
+
+        onUnmounted(() => {
+          document.removeEventListener('keydown', handleKeydown);
+          if (engine) engine.cleanup();
+        });
+
+        return {
+          loading, page, player, levels, selectedLevel, showSettings,
+          bgmOn, sfxOn,
+          gameCanvas, gameScore, gameLives, paused, result, easterEggMsg,
+          currentLevel, selectLevel, startGame, pauseGame, resumeGame, goHome,
+          restartGame, nextLevel, moveLeft, moveRight, stopMove
+        };
+      }
+    });
+
+    app.mount('#app');
+  </script>
 </body>
 </html>

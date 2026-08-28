@@ -135,4 +135,9 @@ const GameConfig = {
   }
 };
 
-module.exports = GameConfig;
+// 兼容 Node.js 和浏览器环境
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = GameConfig;
+} else {
+  window.GameConfig = GameConfig;
+}
