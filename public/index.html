@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>躲避跑酷 - 网页游戏</title>
+  <link rel="stylesheet" href="/src/assets/styles/main.css">
+  <!-- Vue3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Vue应用将挂载到这里 -->
+    <div class="loading-screen">
+      <div class="loading-content">
+        <h1>🎮 躲避跑酷</h1>
+        <p>加载中...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏脚本 -->
+  <script src="/src/utils/gameEngine.js"></script>
+  <script src="/src/utils/saveManager.js"></script>
+  <script src="/src/utils/audioManager.js"></script>
+  <script src="/src/store/index.js"></script>
+  <script src="/src/components/GameCanvas.js"></script>
+  <script src="/src/components/GameUI.js"></script>
+  <script src="/src/components/Modal.js"></script>
+  <script src="/src/components/TaskCard.js"></script>
+  <script src="/src/views/HomeView.js"></script>
+  <script src="/src/views/GameView.js"></script>
+  <script src="/src/views/ResultView.js"></script>
+  <script src="/src/App.js"></script>
+  <script src="/src/main.js"></script>
+</body>
+</html>

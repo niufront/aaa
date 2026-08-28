@@ -1,0 +1,955 @@
+/* ============================================
+   躲避跑酷 - 主样式文件
+   ============================================ */
+
+/* ========== CSS 变量 ========== */
+:root {
+  --primary-color: #4CAF50;
+  --primary-dark: #388E3C;
+  --secondary-color: #2196F3;
+  --secondary-dark: #1976D2;
+  --success-color: #8BC34A;
+  --warning-color: #FF9800;
+  --danger-color: #F44336;
+  --gold-color: #FFD700;
+  --diamond-color: #9C27B0;
+
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.15);
+
+  --radius: 12px;
+  --radius-small: 8px;
+  --radius-large: 16px;
+
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ========== 重置与基础 ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-gradient);
+  color: #333;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+/* ========== 应用容器 ========== */
+.app-container {
+  width: 100%;
+  height: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ========== 按钮样式 ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: var(--secondary-color);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: var(--secondary-dark);
+}
+
+.btn-success {
+  background: var(--success-color);
+  color: white;
+}
+
+.btn-large {
+  padding: 16px 40px;
+  font-size: 20px;
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.btn-disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: 24px;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* ========== 加载页面 ========== */
+.loading-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-gradient);
+}
+
+.loading-content {
+  text-align: center;
+  color: white;
+}
+
+.loading-content h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+/* ========== 首页样式 ========== */
+.home-view {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.home-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floating-shape {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  opacity: 0.2;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.home-header {
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.game-title {
+  font-size: 42px;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.title-icon {
+  font-size: 48px;
+}
+
+.game-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+/* 玩家信息卡片 */
+.player-info-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 16px;
+  color: #666;
+}
+
+.info-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* 关卡选择 */
+.level-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  color: white;
+  font-size: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.level-btn {
+  background: var(--card-bg);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-btn:hover:not(.locked) {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.level-btn.locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.level-btn.current {
+  border: 3px solid var(--primary-color);
+  background: #E8F5E9;
+}
+
+.level-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.level-name {
+  font-size: 12px;
+  color: #666;
+}
+
+.level-stars {
+  font-size: 12px;
+}
+
+.level-badge {
+  font-size: 12px;
+  background: var(--primary-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.level-lock {
+  font-size: 20px;
+}
+
+/* 功能按钮 */
+.action-buttons {
+  margin-bottom: 24px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.btn-row .btn {
+  flex: 1;
+}
+
+/* 任务预览 */
+.task-preview {
+  background: var(--card-bg);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.task-preview h3 {
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.task-list-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: var(--radius-small);
+}
+
+.task-item-mini.completed {
+  background: #E8F5E9;
+}
+
+.task-name {
+  font-size: 14px;
+  color: #666;
+}
+
+.task-progress {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* 版本信息 */
+.version-info {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  padding: 10px 0;
+}
+
+/* ========== 游戏页面样式 ========== */
+.game-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+}
+
+.game-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.level {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.lives {
+  display: flex;
+  gap: 4px;
+}
+
+.heart {
+  font-size: 16px;
+}
+
+.game-canvas {
+  flex: 1;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: block;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  border-right: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-tip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px 40px;
+  border-radius: var(--radius);
+  font-size: 24px;
+  font-weight: 700;
+  animation: fadeInOut 2s ease;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 暂停弹窗 */
+.pause-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.pause-modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-large);
+  padding: 30px;
+  text-align: center;
+  width: 90%;
+  max-width: 320px;
+}
+
+.pause-modal h2 {
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.pause-stats {
+  margin-bottom: 24px;
+}
+
+.pause-stats p {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.pause-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 移动端控制 */
+.mobile-controls {
+  display: none;
+  padding: 16px;
+  gap: 20px;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.control-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 768px) {
+  .mobile-controls {
+    display: flex;
+  }
+}
+
+/* ========== 结算页面样式 ========== */
+.result-view {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--bg-gradient);
+}
+
+.result-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 30px 0;
+}
+
+.result-header h1 {
+  font-size: 36px;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.result-header.win h1 {
+  color: #FFD700;
+}
+
+.result-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+.result-stats {
+  background: var(--card-bg);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.stat-label {
+  flex: 1;
+  font-size: 16px;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-value.highlight {
+  color: var(--gold-color);
+}
+
+.reward-section {
+  background: var(--card-bg);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.reward-section h3 {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.reward-list {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.task-update {
+  background: var(--card-bg);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.task-update h3 {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f5f5f5;
+  border-radius: var(--radius-small);
+}
+
+.task-item.completed {
+  background: #E8F5E9;
+}
+
+.task-item .task-name {
+  flex: 1;
+}
+
+.task-item .task-progress {
+  margin-right: 8px;
+}
+
+.task-check {
+  font-size: 16px;
+}
+
+.result-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.share-section {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.share-section p {
+  margin-bottom: 12px;
+}
+
+.share-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn-share {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-share:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== 弹窗样式 ========== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border-radius: var(--radius-large);
+  padding: 24px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-content.small {
+  max-width: 320px;
+}
+
+.modal-content.medium {
+  max-width: 420px;
+}
+
+.modal-content.large {
+  max-width: 520px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.modal-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+/* ========== 任务卡片样式 ========== */
+.task-card {
+  padding: 10px;
+}
+
+.task-title {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.task-subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.task-card .task-list {
+  margin-bottom: 20px;
+}
+
+.task-card .task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: #f8f9fa;
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+}
+
+.task-card .task-info {
+  flex: 1;
+}
+
+.task-card .task-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.task-progress-bar {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.task-progress-text {
+  font-size: 12px;
+  color: #999;
+}
+
+.task-card .task-reward {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  min-width: 60px;
+}
+
+.task-card .task-item.claimed {
+  opacity: 0.6;
+}
+
+.task-tip {
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+}
+
+/* ========== 设置面板 ========== */
+.settings-panel {
+  padding: 10px;
+}
+
+.settings-panel h2 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 20px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.setting-item button.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* ========== 无敌模式提示 ========== */
+.god-mode-hint {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #333;
+  padding: 20px 40px;
+  border-radius: var(--radius-large);
+  font-size: 24px;
+  font-weight: 700;
+  z-index: 10000;
+  animation: godModePulse 1s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes godModePulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* ========== 响应式适配 ========== */
+@media (max-width: 400px) {
+  .game-title {
+    font-size: 32px;
+  }
+
+  .title-icon {
+    font-size: 36px;
+  }
+
+  .level-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .btn-large {
+    padding: 14px 30px;
+    font-size: 18px;
+  }
+}
+
+/* ========== 滚动条样式 ========== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ========== 选择禁用 ========== */
+.game-canvas {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
